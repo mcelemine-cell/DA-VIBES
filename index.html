@@ -616,3 +616,40 @@
     </script>
 </body>
 </html>
+<!-- Zone de résultat de la vidéo (initialement cachée) -->
+<div id="video-result" class="hidden mt-6 mb-12 bg-dark-900 border border-dark-700 p-6 rounded-2xl text-gray-100 shadow-xl space-y-4">
+  <h3 class="text-xl font-bold text-ai-500 flex items-center gap-2">
+    🎬 Votre vidéo générée
+  </h3>
+  <p class="text-sm text-gray-300">
+    Statut : <span class="text-green-400 font-semibold">Génération réussie avec succès !</span>
+  </p>
+  
+  <!-- Lecteur vidéo simulé -->
+  <div class="relative w-full aspect-video bg-dark-950 rounded-xl overflow-hidden border border-dark-700 flex items-center justify-center shadow-inner">
+    <div class="absolute inset-0 bg-gradient-to-tr from-ai-900/30 to-vibe-900/30 animate-pulse"></div>
+    <div class="z-10 text-center space-y-3 p-4">
+      <div class="w-16 h-16 mx-auto rounded-full bg-ai-600 flex items-center justify-center text-2xl shadow-lg cursor-pointer hover:scale-105 transition text-white">
+        ▶️
+      </div>
+      <p class="text-xs text-gray-400">Cliquez pour lire l'aperçu de votre concept vidéo</p>
+    </div>
+  </div>
+</div>
+
+<!-- Script pour déclencher l'affichage au clic -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const buttons = document.querySelectorAll('button');
+    const resultBox = document.getElementById('video-result');
+    
+    buttons.forEach(btn => {
+      if (btn.textContent.includes('Générer')) {
+        btn.addEventListener('click', () => {
+          resultBox.classList.remove('hidden');
+          resultBox.scrollIntoView({ behavior: 'smooth' });
+        });
+      }
+    });
+  });
+</script>
