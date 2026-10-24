@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmotionVibe AI — Studio de Vidéos Émotionnelles</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            950: '#060913',
+                            900: '#0b0f19',
+                            800: '#111827',
+                            700: '#1f2937',
+                            600: '#374151'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts & Phosphor Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        .float-animation {
+            animation: float 5s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.05); }
+        }
+        .glow-bg {
+            animation: pulse-glow 6s ease-in-out infinite;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="bg-dark-950 text-gray-100 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="border-b border-gray-800 bg-dark-900/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+                    <i class="ph-bold ph-video-camera text-white text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-gray-200 to-indigo-300 bg-clip-text text-transparent">EmotionVibe AI</h1>
+                    <p class="text-xs text-indigo-400 font-medium flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Algorithme Émotionnel v2.4 Actif
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button onclick="openGalleryModal()" class="px-3.5 py-2 rounded-xl bg-dark-800 hover:bg-dark-700 text-sm font-medium text-gray-200 transition flex items-center space-x-2 border border-gray-700 shadow-sm">
+                    <i class="ph ph-film-slate text-indigo-400 text-base"></i>
+                    <span class="hidden sm:inline">Galerie (<span id="gallery-counter">0</span>)</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        
+        <!-- Hero section -->
+        <div class="text-center max-w-3xl mx-auto mb-12">
+            <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold mb-4">
+                <i class="ph-bold ph-sparkle"></i>
+                <span>Génération Vidéo Intelligente par Émotion</span>
+            </div>
+            <h2 class="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 leading-tight">
+                Transformez vos idées en <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">œuvres cinématographiques</span>
+            </h2>
+            <p class="text-gray-400 text-sm sm:text-base">
+                Entrez n'importe quel sujet et laissez notre algorithme émotionnel façonner le prompt parfait et simuler le rendu visuel instantanément.
+            </p>
+        </div>
+
+        <!-- Two Columns Workspace -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- LEFT COLUMN: Input form & controls -->
+            <div class="lg:col-span-6 bg-dark-900/90 border border-gray-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md relative overflow-hidden">
+                <div class="absolute -right-20 -top-20 w-60 h-60 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none glow-bg"></div>
+                <div class="absolute -left-20 -bottom-20 w-60 h-60 bg-pink-600/10 rounded-full blur-3xl pointer-events-none glow-bg"></div>
+
+                <form id="vibe-form" onsubmit="handleGenerate(event)" class="space-y-6 relative z-10">
+                    
+                    <!-- Subject input -->
+                    <div>
+                        <label for="subject-input" class="block text-sm font-semibold text-gray-200 mb-2 flex items-center justify-between">
+                            <span class="flex items-center gap-2">
+                                <i class="ph-bold ph-pen-nib text-indigo-400"></i>
+                                1. Votre sujet ou concept de vidéo
+                            </span>
+                            <span id="char-counter" class="text-xs text-gray-500">0 / 150</span>
+                        </label>
+                        <textarea id="subject-input" rows="3" required maxlength="150"
+                            placeholder="Ex: Un petit chat curieux qui découvre un robot aspirateur dans le salon..."
+                            oninput="updateCharCount(this)"
+                            class="w-full bg-dark-950 border border-gray-800 rounded-2xl px-4 py-3.5 text-gray-100 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm resize-none transition shadow-inner"></textarea>
+                        
+                        <!-- Quick Suggestions chips -->
+                        <div class="flex flex-wrap gap-1.5 mt-2">
+                            <span class="text-[11px] text-gray-500 self-center mr-1">Suggestions :</span>
+                            <button type="button" onclick="setSubject('Un astronaute qui mange une pizza sur Mars')" class="text-[11px] bg-dark-800 hover:bg-dark-700 text-gray-300 px-2.5 py-1 rounded-lg border border-gray-800 transition">🪐 Astronaute pizza</button>
+                            <button type="button" onclick="setSubject('Un vieux livre de contes qui s\'ennuie dans une bibliothèque vide')" class="text-[11px] bg-dark-800 hover:bg-dark-700 text-gray-300 px-2.5 py-1 rounded-lg border border-gray-800 transition">📖 Vieux livre</button>
+                            <button type="button" onclick="setSubject('Un pingouin qui essaie d\'apprendre à faire du skateboard')" class="text-[11px] bg-dark-800 hover:bg-dark-700 text-gray-300 px-2.5 py-1 rounded-lg border border-gray-800 transition">🐧 Pingouin skate</button>
+                        </div>
+                    </div>
+
+                    <!-- Emotion selection -->
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-200 mb-3 flex items-center gap-2">
+                            <i class="ph-bold ph-smiley text-indigo-400"></i>
+                            2. Sélectionnez le ton émotionnel de l'algorithme
+                        </label>
+                        <div class="grid grid-cols-3 gap-3">
+                            <!-- Drôle -->
+                            <label class="cursor-pointer group">
+                                <input type="radio" name="emotion" value="drole" class="peer sr-only" checked onchange="previewEmotionChange()">
+                                <div class="p-3.5 rounded-2xl border border-gray-800 bg-dark-950 peer-checked:border-yellow-500 peer-checked:bg-yellow-500/10 group-hover:border-gray-700 transition flex flex-col items-center text-center space-y-1.5 shadow-sm">
+                                    <span class="text-3xl group-hover:scale-110 transition-transform">😂</span>
+                                    <span class="text-xs font-bold text-yellow-400">Drôle</span>
+                                    <span class="text-[10px] text-gray-500 hidden sm:block">Absurde & comique</span>
+                                </div>
+                            </label>
+                            <!-- Triste -->
+                            <label class="cursor-pointer group">
+                                <input type="radio" name="emotion" value="triste" class="peer sr-only" onchange="previewEmotionChange()">
+                                <div class="p-3.5 rounded-2xl border border-gray-800 bg-dark-950 peer-checked:border-blue-500 peer-checked:bg-blue-500/10 group-hover:border-gray-700 transition flex flex-col items-center text-center space-y-1.5 shadow-sm">
+                                    <span class="text-3xl group-hover:scale-110 transition-transform">😢</span>
+                                    <span class="text-xs font-bold text-blue-400">Triste</span>
+                                    <span class="text-[10px] text-gray-500 hidden sm:block">Mélancolique</span>
+                                </div>
+                            </label>
+                            <!-- Amusant -->
+                            <label class="cursor-pointer group">
+                                <input type="radio" name="emotion" value="amusant" class="peer sr-only" onchange="previewEmotionChange()">
+                                <div class="p-3.5 rounded-2xl border border-gray-800 bg-dark-950 peer-checked:border-pink-500 peer-checked:bg-pink-500/10 group-hover:border-gray-700 transition flex flex-col items-center text-center space-y-1.5 shadow-sm">
+                                    <span class="text-3xl group-hover:scale-110 transition-transform">✨</span>
+                                    <span class="text-xs font-bold text-pink-400">Amusant</span>
+                                    <span class="text-[10px] text-gray-500 hidden sm:block">Feel-good & mignon</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Advanced configuration bar -->
+                    <div class="bg-dark-950 border border-gray-800 rounded-2xl p-3.5 flex items-center justify-between text-xs">
+                        <div class="flex items-center space-x-2 text-gray-400">
+                            <i class="ph ph-cpu text-indigo-400 text-base"></i>
+                            <span>Moteur IA : <strong class="text-gray-200">Runway Gen-3 / Luma Engine</strong></span>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-300 font-semibold border border-indigo-500/20">4K Ultra HD</span>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="submit-btn"
+                        class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-bold shadow-xl shadow-indigo-600/30 transition-all transform hover:-translate-y-0.5 flex items-center justify-center space-x-2 group">
+                        <i class="ph-bold ph-magic-wand text-lg group-hover:rotate-12 transition-transform"></i>
+                        <span>Générer l'Algorithme & la Vidéo</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- RIGHT COLUMN: Output display & Video simulator -->
+            <div class="lg:col-span-6 space-y-6">
+                
+                <!-- Prompt algorithm live generator box -->
+                <div class="bg-dark-900/90 border border-gray-800 rounded-3xl p-6 shadow-2xl backdrop-blur-md">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-2">
+                            <i class="ph-bold ph-code text-indigo-400 text-lg"></i>
+                            <h3 class="text-sm font-semibold text-gray-200">Algorithme de Prompt en direct</h3>
+                        </div>
+                        <button onclick="copyPrompt()" id="copy-btn" class="text-xs bg-dark-800 hover:bg-dark-700 px-3 py-1.5 rounded-xl text-gray-300 transition flex items-center space-x-1 border border-gray-700">
+                            <i class="ph ph-copy"></i>
+                            <span>Copier le prompt</span>
+                        </button>
+                    </div>
+                    <div class="bg-dark-950 border border-gray-800 rounded-2xl p-4 font-mono text-xs text-indigo-200 min-h-[90px] flex items-center justify-center relative overflow-hidden" id="prompt-box">
+                        <span id="prompt-placeholder" class="text-gray-600 font-sans italic text-center">
+                            En attente de saisie... Le prompt enrichi par l'algorithme s'affichera ici.
+                        </span>
+                        <p id="prompt-text" class="hidden leading-relaxed w-full whitespace-pre-wrap"></p>
+                    </div>
+                </div>
+
+                <!-- Video Simulator Player Box -->
+                <div class="bg-dark-900/90 border border-gray-800 rounded-3xl p-6 shadow-2xl backdrop-blur-md">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-2">
+                            <i class="ph-bold ph-film-slate text-pink-400 text-lg"></i>
+                            <h3 class="text-sm font-semibold text-gray-200">Simulateur de Vidéo IA</h3>
+                        </div>
+                        <span id="video-status-badge" class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-800 text-gray-400 border border-gray-700">En attente</span>
+                    </div>
+
+                    <!-- Screen Preview Container -->
+                    <div class="aspect-video w-full bg-dark-950 border border-gray-800 rounded-2xl relative overflow-hidden flex items-center justify-center shadow-inner group">
+                        
+                        <!-- 1. Idle State -->
+                        <div id="preview-idle" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+                            <div class="w-16 h-16 rounded-2xl bg-dark-900 border border-gray-800 flex items-center justify-center mb-3 text-gray-600 float-animation">
+                                <i class="ph ph-video text-3xl"></i>
+                            </div>
+                            <p class="text-xs text-gray-400 font-medium">Le lecteur vidéo interactif apparaîtra ici après génération</p>
+                        </div>
+
+                        <!-- 2. Loading / Algorithm Progression State -->
+                        <div id="preview-loading" class="absolute inset-0 bg-dark-950/95 backdrop-blur-md hidden flex-col items-center justify-center p-6 text-center space-y-4">
+                            <div class="relative w-16 h-16">
+                                <div class="absolute inset-0 rounded-full border-4 border-indigo-500/20"></div>
+                                <div class="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
+                            </div>
+                            <div class="space-y-1">
+                                <p id="loading-step-text" class="text-sm font-bold text-gray-100">Analyse de l'émotion par l'algorithme...</p>
+                                <p class="text-xs text-gray-500">Génération des frames par intelligence artificielle</p>
+                            </div>
+                            <!-- Progress Bar -->
+                            <div class="w-56 h-2 bg-dark-800 rounded-full overflow-hidden p-0.5 border border-gray-700">
+                                <div id="progress-bar" class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 w-0 rounded-full transition-all duration-300"></div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Completed Video Simulation Display -->
+                        <div id="preview-completed" class="absolute inset-0 hidden flex-col items-center justify-between p-6 bg-cover bg-center transition-all" style="background-image: linear-gradient(to bottom, rgba(6,9,19,0.4), rgba(6,9,19,0.92)), url('https://placehold.co/800x450/111827/374151?text=Aperçu+Généré')">
+                            
+                            <!-- Top overlay bar -->
+                            <div class="w-full flex items-center justify-between">
+                                <span id="badge-emotion-result" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-lg">Drôle</span>
+                                <span class="text-xs font-mono bg-black/60 backdrop-blur-md px-3 py-1 rounded-xl text-gray-300 border border-white/10 flex items-center gap-1.5">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                                    00:06 / 4K 60FPS
+                                </span>
+                            </div>
+
+                            <!-- Center play action -->
+                            <div class="flex flex-col items-center space-y-3">
+                                <div onclick="replaySimulation()" class="w-16 h-16 rounded-2xl bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/30 flex items-center justify-center text-white text-2xl shadow-2xl hover:scale-110 transition cursor-pointer group">
+                                    <i class="ph-fill ph-play ml-1 group-hover:scale-110 transition-transform"></i>
+                                </div>
+                                <p id="simulated-caption" class="text-xs sm:text-sm font-medium text-white drop-shadow-md text-center max-w-sm px-4">Animation générée avec succès</p>
+                            </div>
+
+                            <!-- Bottom action bar -->
+                            <div class="w-full flex items-center justify-between pt-2">
+                                <button onclick="replaySimulation()" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-md text-xs font-semibold text-white transition border border-white/10 flex items-center space-x-1.5">
+                                    <i class="ph ph-arrow-counter-clockwise text-sm"></i>
+                                    <span>Relancer</span>
+                                </button>
+                                <button onclick="saveCurrentToGallery()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition shadow-lg flex items-center space-x-1.5">
+                                    <i class="ph ph-floppy-disk text-sm"></i>
+                                    <span>Sauvegarder dans la Galerie</span>
+                                </button>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-gray-800 bg-dark-900/40 py-6 text-center text-xs text-gray-500">
+        <p>EmotionVibe AI Studio — Propulsé par algorithme émotionnel interactif & simulation IA</p>
+    </footer>
+
+    <!-- GALLERY MODAL -->
+    <div id="gallery-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+        <div class="bg-dark-900 border border-gray-800 w-full max-w-2xl rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden flex flex-col max-h-[85vh]">
+            <div class="flex items-center justify-between pb-4 border-b border-gray-800">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                        <i class="ph-bold ph-film-slate text-base"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base text-gray-100">Galerie de vos Vidéos Émotionnelles</h3>
+                        <p class="text-xs text-gray-400">Historique des créations sauvegardées dans votre session</p>
+                    </div>
+                </div>
+                <button onclick="closeGalleryModal()" class="w-9 h-9 rounded-xl bg-dark-800 hover:bg-dark-700 flex items-center justify-center text-gray-400 hover:text-white transition">
+                    <i class="ph ph-x text-lg"></i>
+                </button>
+            </div>
+            
+            <div id="gallery-list" class="space-y-3.5 overflow-y-auto py-4 pr-1 flex-grow">
+                <!-- Dynamic Items or Empty State -->
+                <div class="text-center py-12 text-gray-500 space-y-2">
+                    <i class="ph ph-tray text-4xl text-gray-600"></i>
+                    <p class="text-sm">Aucune vidéo sauvegardée pour le moment.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT APP LOGIC -->
+    <script>
+        // Session gallery storage
+        let videoGallery = [];
+        let currentGeneration = null;
+
+        // Algorithm emotion templates
+        const emotionData = {
+            drole: {
+                name: "Drôle",
+                badgeBg: "bg-yellow-500/90",
+                colorText: "text-yellow-400",
+                imageUrl: "https://placehold.co/800x450/451a03/fde047?text=Scène+Comique+%26+Burlesque",
+                caption: "Scène comique dynamique avec rebondissement inattendu et timing parfait.",
+                steps: [
+                    "Analyse de l'effet comique et du rythme burlesque...",
+                    "Application de la structure narrative à chute rapide...",
+                    "Injection d'expressions faciales exagérées et couleurs vives...",
+                    "Finalisation du rendu de la vidéo drôle..."
+                ],
+                buildPrompt: (subject) => `Cinematic comedic sketch, highly exaggerated facial expressions, vibrant saturated colors, upbeat comical timing, starring ${subject}, fast camera cuts, slapstick atmosphere, 4k resolution, unreal engine 5 render, highly detailed.`
+            },
+            triste: {
+                name: "Triste",
+                badgeBg: "bg-blue-600/90",
+                colorText: "text-blue-400",
+                imageUrl: "https://placehold.co/800x450/0f172a/93c5fd?text=Scène+Mélancolique+%26+Émouvante",
+                caption: "Atmosphère mélancolique et poétique avec éclairage doux et plan large solitaire.",
+                steps: [
+                    "Évaluation de la charge émotionnelle et de l'empathie...",
+                    "Application de la palette de tons froids et sépia...",
+                    "Ralentissement des mouvements de caméra et profondeur de champ...",
+                    "Finalisation du rendu de la vidéo émouvante..."
+                ],
+                buildPrompt: (subject) => `Cinematic emotional drama shot, melancholic atmosphere, soft cold rainy lighting, lonely character representing ${subject}, slow camera pan, deep emotional depth, muted color palette, 4k resolution, cinematic grain.`
+            },
+            amusant: {
+                name: "Amusant",
+                badgeBg: "bg-pink-500/90",
+                colorText: "text-pink-400",
+                imageUrl: "https://placehold.co/800x450/500724/f472b6?text=Scène+Feel-Good+%26+Mignonne",
+                caption: "Ambiance feel-good lumineuse, colorée, chaleureuse et divertissante.",
+                steps: [
+                    "Optimisation de l'ambiance chaleureuse et lumineuse...",
+                    "Harmonisation des couleurs pastel et joyeuses...",
+                    "Ajout de micro-animations sympathiques et fluides...",
+                    "Finalisation du rendu de la vidéo amusante..."
+                ],
+                buildPrompt: (subject) => `Feel-good upbeat animation style, warm sunny lighting, vibrant pastel colors, charming character design featuring ${subject}, smooth delightful movement, joyful atmosphere, high quality render, 4k.`
+            }
+        };
+
+        function setSubject(text) {
+            document.getElementById('subject-input').value = text;
+            updateCharCount(document.getElementById('subject-input'));
+        }
+
+        function updateCharCount(el) {
+            const current = el.value.length;
+            document.getElementById('char-counter').textContent = `${current} / 150`;
+        }
+
+        function previewEmotionChange() {
+            // Optional preview reactivity when changing emotion radio
+            const emotion = document.querySelector('input[name="emotion"]:checked').value;
+            const subject = document.getElementById('subject-input').value.trim();
+            if (subject) {
+                const prompt = emotionData[emotion].buildPrompt(subject);
+                document.getElementById('prompt-text').textContent = prompt;
+            }
+        }
+
+        function handleGenerate(e) {
+            e.preventDefault();
+            const subject = document.getElementById('subject-input').value.trim();
+            const emotionRadio = document.querySelector('input[name="emotion"]:checked');
+            if (!subject || !emotionRadio) return;
+
+            const emotionKey = emotionRadio.value;
+            const template = emotionData[emotionKey];
+            const generatedPrompt = template.buildPrompt(subject);
+
+            currentGeneration = {
+                id: Date.now(),
+                subject,
+                emotion: emotionKey,
+                emotionName: template.name,
+                prompt: generatedPrompt,
+                date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+
+            // Display live prompt
+            document.getElementById('prompt-placeholder').classList.add('hidden');
+            const promptTextEl = document.getElementById('prompt-text');
+            promptTextEl.classList.remove('hidden');
+            promptTextEl.textContent = generatedPrompt;
+
+            // Run simulation sequence
+            runSimulationSequence(template);
+        }
+
+        function runSimulationSequence(template) {
+            const idleEl = document.getElementById('preview-idle');
+            const loadingEl = document.getElementById('preview-loading');
+            const completedEl = document.getElementById('preview-completed');
+            const statusBadge = document.getElementById('video-status-badge');
+            const stepText = document.getElementById('loading-step-text');
+            const progressBar = document.getElementById('progress-bar');
+
+            idleEl.classList.add('hidden');
+            completedEl.classList.add('hidden');
+            loadingEl.classList.remove('hidden');
+            loadingEl.classList.add('flex');
+
+            statusBadge.textContent = "Traitement...";
+            statusBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 animate-pulse";
+
+            let stepIndex = 0;
+            progressBar.style.width = '0%';
+
+            const interval = setInterval(() => {
+                if (stepIndex < template.steps.length) {
+                    stepText.textContent = template.steps[stepIndex];
+                    progressBar.style.width = `${((stepIndex + 1) / template.steps.length) * 100}%`;
+                    stepIndex++;
+                } else {
+                    clearInterval(interval);
+                    loadingEl.classList.add('hidden');
+                    loadingEl.classList.remove('flex');
+                    
+                    completedEl.classList.remove('hidden');
+                    completedEl.classList.add('flex');
+
+                    const badgeResult = document.getElementById('badge-emotion-result');
+                    badgeResult.textContent = template.name;
+                    badgeResult.className = `px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-lg ${template.badgeBg}`;
+
+                    document.getElementById('simulated-caption').textContent = template.caption;
+                    completedEl.style.backgroundImage = `linear-gradient(to bottom, rgba(6,9,19,0.4), rgba(6,9,19,0.92)), url('${template.imageUrl}')`;
+
+                    statusBadge.textContent = "Terminé";
+                    statusBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+
+                    showToast("Vidéo simulée générée avec succès !", "success");
+                }
+            }, 600);
+        }
+
+        function replaySimulation() {
+            if (!currentGeneration) return;
+            const template = emotionData[currentGeneration.emotion];
+            runSimulationSequence(template);
+        }
+
+        function copyPrompt() {
+            const promptText = document.getElementById('prompt-text').textContent;
+            if (!promptText || document.getElementById('prompt-text').classList.contains('hidden')) return;
+
+            const textarea = document.createElement('textarea');
+            textarea.value = promptText;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast("Prompt copié dans le presse-papier !", "success");
+                const btn = document.getElementById('copy-btn');
+                btn.innerHTML = `<i class="ph ph-check text-emerald-400"></i><span>Copié</span>`;
+                setTimeout(() => {
+                    btn.innerHTML = `<i class="ph ph-copy"></i><span>Copier le prompt</span>`;
+                }, 2000);
+            } catch (err) {
+                showToast("Erreur lors de la copie.", "error");
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function saveCurrentToGallery() {
+            if (!currentGeneration) return;
+            // Check if already exists in gallery
+            if (!videoGallery.some(v => v.id === currentGeneration.id)) {
+                videoGallery.unshift(currentGeneration);
+                document.getElementById('gallery-counter').textContent = videoGallery.length;
+                updateGalleryList();
+                showToast("Vidéo enregistrée dans la galerie !", "success");
+            } else {
+                showToast("Cette vidéo est déjà dans votre galerie.", "info");
+            }
+        }
+
+        function openGalleryModal() {
+            document.getElementById('gallery-modal').classList.remove('hidden');
+            document.getElementById('gallery-modal').classList.add('flex');
+        }
+
+        function closeGalleryModal() {
+            document.getElementById('gallery-modal').classList.add('hidden');
+            document.getElementById('gallery-modal').classList.remove('flex');
+        }
+
+        function updateGalleryList() {
+            const listEl = document.getElementById('gallery-list');
+            if (videoGallery.length === 0) {
+                listEl.innerHTML = `
+                    <div class="text-center py-12 text-gray-500 space-y-2">
+                        <i class="ph ph-tray text-4xl text-gray-600"></i>
+                        <p class="text-sm">Aucune vidéo sauvegardée pour le moment.</p>
+                    </div>`;
+                return;
+            }
+
+            listEl.innerHTML = videoGallery.map(item => `
+                <div class="bg-dark-950 border border-gray-800 rounded-2xl p-4 flex items-center justify-between hover:border-gray-700 transition">
+                    <div class="space-y-1 max-w-md">
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                item.emotion === 'drole' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' :
+                                item.emotion === 'triste' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' :
+                                'bg-pink-500/20 text-pink-400 border border-pink-500/30'
+                            }">${item.emotionName}</span>
+                            <span class="text-[11px] text-gray-500">${item.date}</span>
+                        </div>
+                        <p class="text-xs text-gray-200 font-semibold line-clamp-1">${item.subject}</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="loadFromGallery(${item.id})" class="px-3 py-1.5 rounded-xl bg-dark-800 hover:bg-dark-700 text-xs font-medium text-gray-300 transition border border-gray-700">
+                            Charger
+                        </button>
+                        <button onclick="deleteFromGallery(${item.id})" class="w-8 h-8 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 flex items-center justify-center transition border border-red-500/20">
+                            <i class="ph ph-trash text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadFromGallery(id) {
+            const found = videoGallery.find(v => v.id === id);
+            if (!found) return;
+            currentGeneration = found;
+            document.getElementById('subject-input').value = found.subject;
+            updateCharCount(document.getElementById('subject-input'));
+            
+            // Set radio
+            const radio = document.querySelector(`input[name="emotion"][value="${found.emotion}"]`);
+            if (radio) radio.checked = true;
+
+            // Set prompt box
+            document.getElementById('prompt-placeholder').classList.add('hidden');
+            const promptTextEl = document.getElementById('prompt-text');
+            promptTextEl.classList.remove('hidden');
+            promptTextEl.textContent = found.prompt;
+
+            closeGalleryModal();
+            replaySimulation();
+        }
+
+        function deleteFromGallery(id) {
+            videoGallery = videoGallery.filter(v => v.id !== id);
+            document.getElementById('gallery-counter').textContent = videoGallery.length;
+            updateGalleryList();
+            showToast("Vidéo supprimée de la galerie.", "info");
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-2xl text-xs font-semibold text-white flex items-center space-x-2.5 border transition-all duration-300 transform translate-y-2 opacity-0 ${
+                type === 'success' ? 'bg-dark-900 border-emerald-500/50 text-emerald-300' :
+                type === 'info' ? 'bg-dark-900 border-indigo-500/50 text-indigo-300' :
+                'bg-dark-900 border-red-500/50 text-red-300'
+            }`;
+            toast.innerHTML = `
+                <i class="ph-bold ${type === 'success' ? 'ph-check-circle text-emerald-400' : type === 'info' ? 'ph-info text-indigo-400' : 'ph-warning-circle text-red-400'} text-base"></i>
+                <span>${message}</span>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
